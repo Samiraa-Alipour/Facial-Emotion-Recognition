@@ -8,10 +8,17 @@ import base64
 import os
 import time
 import tempfile
+from werkzeug.utils import secure_filename
+
 
 from flask import Flask, send_from_directory
 # app = Flask(__name__)
 app = Flask(__name__, static_folder='static')
+app.config['UPLOAD_FOLDER'] = 'uploads/'
+
+# Ensure upload folder exists
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
 
 # Initialize MediaPipe Face Detection
 mp_face_mesh = mp.solutions.face_mesh
@@ -161,6 +168,50 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/upload_image', methods=['POST'])
+def upload_image():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    if file:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        # Load the image and perform emotion detection
+        image = cv2.imread(filepath)
+        emotion = detect_emotion(image)
+        
+        return jsonify({'emotion': emotion})
+
+@app.route('/upload_video', methods=['POST'])
+def upload_video():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    if file:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        # Here you would process the video
+        cap = cv2.VideoCapture(filepath)
+        emotions = []
+        
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+            emotion = detect_emotion(frame)
+            emotions.append(emotion)
+        
+        cap.release()
+        
+        return jsonify({'emotions': emotions})
 
 
 @app.route('/video_feed')

@@ -43,6 +43,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    function startRealtime() {
+        document.getElementById("realtime-video").src = "/video_feed";
+    }
+    
+    function uploadImage() {
+        const imageInput = document.getElementById("imageUpload");
+        const file = imageInput.files[0];
+    
+        if (file) {
+            const formData = new FormData();
+            formData.append("file", file);
+    
+            fetch("/upload_image", {
+                method: "POST",
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    document.getElementById("imageEmotionResult").innerText = `Emotion: ${data.emotion}`;
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    }
+    
+    function uploadVideo() {
+        const videoInput = document.getElementById("videoUpload");
+        const file = videoInput.files[0];
+    
+        if (file) {
+            const formData = new FormData();
+            formData.append("file", file);
+    
+            fetch("/upload_video", {
+                method: "POST",
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    document.getElementById("videoEmotionResult").innerText = `Emotions: ${data.emotions.join(", ")}`;
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    }
+    
+
     // Image upload handler
     document.getElementById('image-upload').addEventListener('change', function(e) {
         if (e.target.files.length === 0) return;
