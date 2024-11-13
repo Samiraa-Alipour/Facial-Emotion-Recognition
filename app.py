@@ -9,8 +9,9 @@ import os
 import time
 import tempfile
 
-
-app = Flask(__name__)
+from flask import Flask, send_from_directory
+# app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 # Initialize MediaPipe Face Detection
 mp_face_mesh = mp.solutions.face_mesh
@@ -158,6 +159,9 @@ def gen_frames():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+
 
 @app.route('/video_feed')
 def video_feed():
