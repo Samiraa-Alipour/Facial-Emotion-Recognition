@@ -10,15 +10,13 @@ import time
 import tempfile
 from werkzeug.utils import secure_filename
 
-
-from flask import Flask, send_from_directory
-# app = Flask(__name__)
 app = Flask(__name__, static_folder='static')
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 
 # Ensure upload folder exists
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
+
 
 # Initialize MediaPipe Face Detection
 mp_face_mesh = mp.solutions.face_mesh
@@ -172,46 +170,75 @@ def index():
 def upload_image():
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
+    
     file = request.files['file']
+    
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
+    
     if file:
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
         file.save(filepath)
         
         # Load the image and perform emotion detection
         image = cv2.imread(filepath)
-        emotion = detect_emotion(image)
         
-        return jsonify({'emotion': emotion})
+        # Ensure the image is read correctly before processing it.
+        if image is None:
+            return jsonify({'error': 'Error reading the uploaded image'}), 400
+        
+        # Process the image with max_num_faces set to handle multiple faces.
+        processed_frame , emotions=process_frame(image , mode='image')
+        
+        _, buffer=cv2.imencode('.jpg', processed_frame)
+        processed_image=base64.b64encode(buffer).decode('utf-8')
+        
+        return jsonify({
+            'status':'success',
+            'image':processed_image,
+            'emotions':emotions if emotions else {}
+        })
 
 @app.route('/upload_video', methods=['POST'])
 def upload_video():
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
+    
     file = request.files['file']
+    
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
+    
     if file:
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
         file.save(filepath)
 
-        # Here you would process the video
         cap = cv2.VideoCapture(filepath)
-        emotions = []
+        
+        # Ensure video is opened successfully before processing it.
+        if not cap.isOpened():
+            return jsonify({'error': 'Error opening video file'}), 400
+        
+        emotions_timeline = []
         
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
                 break
-            emotion = detect_emotion(frame)
-            emotions.append(emotion)
-        
+            
+            processed_frame , emotions=process_frame(frame) 
+            if emotions:
+                emotions_timeline.append(emotions)
+
+            # You can choose to write or process frames as needed here.
+
         cap.release()
         
-        return jsonify({'emotions': emotions})
+        return jsonify({'status':'success', 'emotions_timeline': emotions_timeline})
 
 
 @app.route('/video_feed')
