@@ -1,6 +1,7 @@
-Flask==2.0.1
+Flask==2.2.2  # Use a stable version of Flask
 opencv-python-headless==4.5.3.56
-mediapipe==0.10.15  # Updated version
-numpy==1.21.2
+mediapipe==0.10.15
+numpy>=1.22
 Pillow==8.3.2
 gunicorn==20.1.0
+Werkzeug==2.2.2  # Ensure Werkzeug is compatible with Flask
