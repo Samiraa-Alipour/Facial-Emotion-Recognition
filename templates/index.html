@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facial Emotion Recognition</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Facial Emotion Recognition</h1>
+        
+        <div class="mode-selector-container">
+            <p class="instruction-text">Choose a detection mode to begin emotion analysis:</p>
+            <div class="mode-selector">
+                <select id="mode-select">
+                    <option value="" disabled selected>Select Detection Mode</option>
+                    <option value="realtime">Real-time Detection</option>
+                    <option value="image">Image Upload</option>
+                    <option value="video">Video Upload</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Real-time mode container -->
+        <div id="realtime-container" class="mode-container hidden">
+            <button class="back-btn">← Back</button>
+            <div class="video-container">
+                <img id="video-feed" src="{{ url_for('video_feed') }}" alt="Video feed">
+            </div>
+        </div>
+
+        <!-- Image upload mode container -->
+        <div id="image-container" class="mode-container hidden">
+            <button class="back-btn">← Back</button>
+            <div class="upload-container">
+                <label for="image-upload" class="upload-label">
+                    <span>Upload Image</span>
+                    <input type="file" id="image-upload" accept="image/*">
+                </label>
+            </div>
+            <div id="image-result" class="result-container hidden">
+                <img id="processed-image" alt="Processed image">
+                <div id="image-emotions" class="emotions-container"></div>
+            </div>
+        </div>
+
+        <!-- Video upload mode container -->
+        <div id="video-container" class="mode-container hidden">
+            <button class="back-btn">← Back</button>
+            <div class="upload-container">
+                <label for="video-upload" class="upload-label">
+                    <span>Upload Video</span>
+                    <input type="file" id="video-upload" accept="video/*">
+                </label>
+            </div>
+            <div id="video-result" class="result-container hidden">
+                <video id="processed-video" controls></video>
+                <canvas id="emotions-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="hidden">
+        <div class="loader"></div>
+        <p>Processing...</p>
+    </div>
+
+    <!-- Error modal -->
+    <div id="error-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Error</h2>
+            <p id="error-message"></p>
+            <button id="close-error">Close</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
+
+
+
+
+
+
+ 
